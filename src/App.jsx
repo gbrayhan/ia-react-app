@@ -1,10 +1,10 @@
 import './App.css'
 import { Route, Routes } from 'react-router-dom'
-import AppLayout from './layouts/AppLayout.jsx'
+import AppLayout from './layouts/AppLayout'
 import UIPage from './pages/ui'
-import DashboardPage from './pages/dashboard/index.jsx'
-import LoginPage from './pages/login/index.jsx'
-import NotFoundPage from './NotFoundPage.jsx'
+import DashboardPage from './pages/dashboard'
+import LoginPage from './pages/login'
+import NotFoundPage from './NotFoundPage'
 
 function App () {
   return (<div>
