@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-exec > react-project-content.txt 2>&1
+exec > project-content.txt 2>&1
 
 BLACKLIST_DIRS=(
   "node_modules"
@@ -9,7 +9,7 @@ BLACKLIST_DIRS=(
   "coverage"
   "build"
   "dist"
-  "cypress/videos"
+  "cypress"
 )
 
 BLACKLIST_FILES=(
@@ -25,17 +25,35 @@ BLACKLIST_FILES=(
 
 BLACKLIST_EXTENSIONS=(
   "md"
+  "txt"
+  "pdf"
   "log"
-  "map"
-  "test.js"
-  "test.ts"
-  "snap"
+  "zip"
+  "tar"
+  "gz"
+  "bz2"
+  "xz"
+  "7z"
+  "rar"
+  "exe"
+  "dll"
+  "png"
+  "jpg"
+  "jpeg"
+  "gif"
+  "bmp"
+  "svg"
+  "ico"
+  "webp"
+  "mp4"
+  "mkv"
+
 )
 
 is_in_blacklisted_dir() {
   local f="$1"
   for d in "${BLACKLIST_DIRS[@]}"; do
-    [[ "$f" == "$d/"* || "$f" == "$d"*"/"* ]] && return 0
+    [[ "$f" == "$d/"* ]] && return 0
   done
   return 1
 }

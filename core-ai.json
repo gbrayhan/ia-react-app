@@ -1,0 +1,22 @@
+{
+  "core_files": [
+    "src/main.jsx",
+    "src/App.jsx",
+    "src/providers/AppProviders.jsx",
+    "src/context/UserContext.jsx",
+    "src/context/ThemeContext.jsx"
+  ],
+  "app_pages":[
+    {
+      "name": "Home",
+      "path": "src/pages/login/index.jsx",
+        "description": "Login page for the application"
+    },
+    {
+      "name": "Dashboard",
+      "path": "src/pages/dashboard/index.jsx",
+        "description": "Main dashboard page for the application"
+    }
+  ],
+
+}
