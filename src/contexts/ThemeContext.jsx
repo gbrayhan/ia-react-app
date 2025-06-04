@@ -1,8 +1,8 @@
-import {createContext, useContext, useReducer} from 'react';
+import {createContext, useContext, useReducer, useEffect} from 'react';
 import PropTypes from "prop-types";
 
 const initialThemeState = {
-    theme: 'light', language: 'es', fontSize: 'medium',
+    theme: 'dark', language: 'es', fontSize: 'medium',
 };
 
 const themeReducer = (state, action) => {
@@ -28,6 +28,10 @@ const ThemeContext = createContext();
 
 export const ThemeProvider = ({children}) => {
     const [state, dispatch] = useReducer(themeReducer, initialThemeState);
+
+    useEffect(() => {
+        document.documentElement.setAttribute('data-theme', state.theme);
+    }, [state.theme]);
 
     return (<ThemeContext.Provider value={{state, dispatch}}>
         {children}
