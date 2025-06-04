@@ -6,8 +6,9 @@ import { useNavigate } from 'react-router-dom'
 import { BACKEND_URL } from '../../config.js'
 
 const theme = createTheme({
-  palette: { primary: { main: '#1a73e8' }, background: { default: '#ffffff' } },
+  palette: { primary: { main: '#9b5de5' }, background: { default: '#ffffff' } },
   typography: {
+    fontFamily: 'Inter, sans-serif',
     h4: { fontSize: '1.5rem', fontWeight: 500 },
     body1: { fontSize: '0.875rem' },
   },
@@ -63,17 +64,14 @@ const LoginPage = () => {
           left: 0,
           width: '100%',
           height: '100%',
-          backgroundImage: 'url(/bg-login.jpg)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          filter: 'blur(8px)',
+          background: 'linear-gradient(135deg, #c5a4ff 0%, #94b0ff 100%)',
           zIndex: -1,
         }}
       />
       <Box display="flex" justifyContent="center" alignItems="center"
            minHeight="100vh" p={2}>
-        <Paper elevation={3}
-               sx={{ padding: 4, maxWidth: '400px', width: '100%' }}>
+        <Paper elevation={4}
+               sx={{ padding: 4, maxWidth: '400px', width: '100%', borderRadius: 3 }}>
           <Box textAlign="center" mb={2}>
             <Typography variant="h5" component="h1">
               Distribuidora Aceso
