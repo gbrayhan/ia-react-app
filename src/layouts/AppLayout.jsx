@@ -1,41 +1,60 @@
 import { useEffect, useRef, useState } from 'react'
 import PropTypes from 'prop-types'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import Sidebar from './Sidebar.jsx'
 import Navbar from './Navbar.jsx'
-import { useAuth } from '../contexts/UserContext.jsx'
-import { ACESO_BACKEND_URL } from '../config.js'
+import { useAuth } from '../contexts/useAuth.js'
+import { BACKEND_URL } from '../config.js'
+import { Typography } from '@mui/material'
 
-//  20-10-5 minutes pattern on auth manager
+const PAGE_TITLES = {
+  '/': 'Dashboard',
+  '/dashboard': 'Dashboard',
+  '/clients': 'Panel de Clientes',
+  '/medicine-catalog': 'Catálogo de Medicamentos',
+  '/medicine-cost': 'Costo de Medicamentos',
+  '/icd-catalog': 'Catálogo ICD',
+  '/view-orders': 'Órdenes',
+  '/recurrent-patient': 'Pacientes Recurrentes',
+  '/admin-order': 'Administrar Orden',
+  '/admin-acuses': 'Panel de Asignación de Medicamentos',
+  '/warehouse-medicine': 'Inventario',
+  '/create-order': 'Crear Orden',
+  '/procurement': 'Adquisiciones',
+  '/ui': 'UI',
+}
+
 function useAuthManager () {
   const { state, dispatch } = useAuth()
   const navigate = useNavigate()
   const refreshTokenRef = useRef(state.refreshToken)
   const lastAuthRef = useRef(state.lastAuthenticationDate)
-  const timers = useRef({ timeoutId: null, intervalId: null })
+  const timers = useRef({
+    refreshIntervalId: null, inactivityTimeoutId: null,
+  })
 
-  // Mantener refs actualizadas
-  useEffect(() => { refreshTokenRef.current = state.refreshToken },
-    [state.refreshToken])
-  useEffect(() => { lastAuthRef.current = state.lastAuthenticationDate },
-    [state.lastAuthenticationDate])
-
-  // 1) Redirigir si no hay usuario
   useEffect(() => {
-    if (!state.user) navigate('/login')
+    refreshTokenRef.current = state.refreshToken
+  }, [state.refreshToken])
+
+  useEffect(() => {
+    lastAuthRef.current = state.lastAuthenticationDate
+  }, [state.lastAuthenticationDate])
+
+  useEffect(() => {
+    if (!state.user) {
+      navigate('/login')
+    }
   }, [state.user, navigate])
 
   useEffect(() => {
-    if (!refreshTokenRef.current || !lastAuthRef.current) return
+    if (!refreshTokenRef.current) return
 
-    const now = Date.now()
-    const lastMs = new Date(lastAuthRef.current).getTime()
-    const delayMs = Math.max(5 * 60_000 - (now - lastMs), 0)
     const controller = new AbortController()
 
     const refresh = async () => {
       try {
-        const res = await fetch(`${ACESO_BACKEND_URL}/access-token/refresh`, {
+        const res = await fetch(`${BACKEND_URL}/access-token/refresh`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ refreshToken: refreshTokenRef.current }),
@@ -57,58 +76,71 @@ function useAuthManager () {
       }
     }
 
-    timers.current.timeoutId = setTimeout(() => {
-      refresh()
-      timers.current.intervalId = setInterval(refresh, 9 * 60_000)
-    }, delayMs)
+    refresh()
+    timers.current.refreshIntervalId = setInterval(refresh, 5 * 60_000)
 
     return () => {
       controller.abort()
-      clearTimeout(timers.current.timeoutId)
-      if (timers.current.intervalId) clearInterval(timers.current.intervalId)
+      clearInterval(timers.current.refreshIntervalId)
     }
   }, [dispatch, navigate])
 
   useEffect(() => {
-    let inactivityTimeout = null
     const logout = () => {
       dispatch({ type: 'LOGOUT' })
       navigate('/login')
     }
-    const reset = () => {
-      clearTimeout(inactivityTimeout)
-      inactivityTimeout = setTimeout(logout, 10 * 60_000)
-    }
-    const debounced = () => window.requestAnimationFrame(reset)
 
-    const events = [
+    const resetInactivity = () => {
+      clearTimeout(timers.current.inactivityTimeoutId)
+      timers.current.inactivityTimeoutId = setTimeout(logout, 10 * 60_000)
+    }
+
+    const activityEvents = [
       'mousemove', 'mousedown', 'keypress', 'scroll', 'touchstart']
-    events.forEach(e => window.addEventListener(e, debounced))
-    reset()
+    activityEvents.forEach(
+      (ev) => window.addEventListener(ev, resetInactivity))
+
+    resetInactivity()
 
     return () => {
-      clearTimeout(inactivityTimeout)
-      events.forEach(e => window.removeEventListener(e, debounced))
+      clearTimeout(timers.current.inactivityTimeoutId)
+      activityEvents.forEach(
+        (ev) => window.removeEventListener(ev, resetInactivity))
     }
   }, [dispatch, navigate])
 }
 
 export default function AppLayout ({ component }) {
-  const [collapsed, setCollapsed] = useState(false)
+  const [collapsed, setCollapsed] = useState(() => {
+    const stored = localStorage.getItem('sidebarCollapsed')
+    return stored === 'true'
+  })
   useAuthManager()
   const { state } = useAuth()
+  const location = useLocation()
 
   if (!state.user) return null
 
+  let pageTitle = PAGE_TITLES[location.pathname]
+  if (!pageTitle) {
+    const match = Object.keys(PAGE_TITLES).
+      find((p) => p !== '/' && location.pathname.startsWith(p))
+    if (match) pageTitle = PAGE_TITLES[match]
+  }
+
   return (<div>
-    <Sidebar collapsed={collapsed} setCollapsed={setCollapsed}/>
-    <main className={`transition-all duration-300 p-4 mt-12 ${collapsed
-      ? 'ml-16'
-      : 'ml-64'}`}>
-      <Navbar/>
-      {component}
-    </main>
-  </div>)
+      <Sidebar collapsed={collapsed} setCollapsed={setCollapsed}/>
+      <main
+        className={`transition-all duration-300 p-4 mt-12 ${collapsed
+          ? 'ml-16'
+          : 'ml-64'}`}
+      >
+        <Navbar/>
+        {pageTitle && <Typography variant="h5">{pageTitle}</Typography>}
+        {component}
+      </main>
+    </div>)
 }
 
 AppLayout.propTypes = {

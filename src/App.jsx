@@ -1,7 +1,6 @@
 import './App.css'
 import { Route, Routes } from 'react-router-dom'
 import AppLayout from './layouts/AppLayout'
-import UIPage from './pages/ui'
 import DashboardPage from './pages/dashboard'
 import LoginPage from './pages/login'
 import NotFoundPage from './NotFoundPage'
@@ -16,7 +15,6 @@ function App () {
         element={<AppLayout component={<DashboardPage/>}/>}
       />
 
-      <Route path="/ui" element={<AppLayout component={<UIPage/>}/>}/>
       <Route path="*" element={<NotFoundPage/>}/>
     </Routes>
   </div>)

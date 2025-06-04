@@ -1,28 +1,32 @@
-import { createContext, useContext, useEffect, useReducer } from 'react'
-import PropTypes from 'prop-types'
+import { useContext, useEffect, useReducer } from 'react'
+import PropTypes from 'prop-types';
+import { AuthContext } from './authContext.js';
 
 const getInitialState = () => {
-  const storedUser = localStorage.getItem('user')
-  const storedAccessToken = localStorage.getItem('accessToken')
-  const storedRefreshToken = localStorage.getItem('refreshToken')
+  const storedUser = localStorage.getItem('user');
+  const storedAccessToken = localStorage.getItem('accessToken');
+  const storedRefreshToken = localStorage.getItem('refreshToken');
   return {
     loginOnProgress: false,
     lastAuthenticationDate: null,
     user: storedUser ? JSON.parse(storedUser) : null,
     accessToken: storedAccessToken || null,
     refreshToken: storedRefreshToken || null,
-  }
-}
+  };
+};
 
-const initialAuthState = { user: null, accessToken: null, refreshToken: null }
+const initialAuthState = {
+  user: null,
+  accessToken: null,
+  refreshToken: null,
+  loginOnProgress: false,
+  lastAuthenticationDate: null,
+};
 
 const authReducer = (state, action) => {
   switch (action.type) {
     case 'LOGIN_START':
-      return {
-        ...state,
-        loginOnProgress: true,
-      }
+      return { ...state, loginOnProgress: true };
     case 'LOGIN':
       return {
         ...state,
@@ -31,52 +35,52 @@ const authReducer = (state, action) => {
         user: action.payload.user,
         accessToken: action.payload.accessToken,
         refreshToken: action.payload.refreshToken,
-      }
+      };
     case 'LOGOUT':
-      return initialAuthState
+      return initialAuthState;
     case 'REFRESH_TOKEN':
       return {
         ...state,
         lastAuthenticationDate: new Date(),
         loginOnProgress: false,
         accessToken: action.payload.accessToken,
-        refreshToken: action.payload.refreshToken,
-      }
+        refreshToken: action.payload.refreshToken || state.refreshToken,
+      };
     default:
-      return state
+      return state;
   }
-}
-
-const AuthContext = createContext()
+};
 
 export const AuthProvider = ({ children }) => {
-  const [state, dispatch] = useReducer(authReducer, getInitialState())
+  const [state, dispatch] = useReducer(authReducer, getInitialState());
 
   useEffect(() => {
     if (state.accessToken) {
-      localStorage.setItem('accessToken', state.accessToken)
+      localStorage.setItem('accessToken', state.accessToken);
     } else {
-      localStorage.removeItem('accessToken')
+      localStorage.removeItem('accessToken');
     }
     if (state.refreshToken) {
-      localStorage.setItem('refreshToken', state.refreshToken)
+      localStorage.setItem('refreshToken', state.refreshToken);
     } else {
-      localStorage.removeItem('refreshToken')
+      localStorage.removeItem('refreshToken');
     }
     if (state.user) {
-      localStorage.setItem('user', JSON.stringify(state.user))
+      localStorage.setItem('user', JSON.stringify(state.user));
     } else {
-      localStorage.removeItem('user')
+      localStorage.removeItem('user');
     }
-  }, [state])
+  }, [state]);
 
-  return <AuthContext.Provider
-    value={{ state, dispatch }}>{children}</AuthContext.Provider>
-}
+  return (
+    <AuthContext.Provider value={{ state, dispatch }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
 
 AuthProvider.propTypes = {
   children: PropTypes.node.isRequired,
-}
+};
 
-export const useAuth = () => useContext(AuthContext)
-
+export const useAuth = () => useContext(AuthContext);
